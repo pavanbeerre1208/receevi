@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN || "vibecode";
 
-// GET = Meta webhook verification
+// GET: Meta verification
 export async function GET(req: NextRequest) {
   const params = req.nextUrl.searchParams;
 
@@ -10,26 +10,23 @@ export async function GET(req: NextRequest) {
   const token = params.get("hub.verify_token");
   const challenge = params.get("hub.challenge");
 
-  console.log("WEBHOOK GET", { mode, token, challenge });
+  console.log("WEBHOOK GET", { mode, token, challenge, VERIFY_TOKEN });
 
   if (mode === "subscribe" && token === VERIFY_TOKEN) {
-    console.log("WEBHOOK VERIFIED");
+    // Echo the challenge back (as plain text)
     return new NextResponse(challenge ?? "", { status: 200 });
   }
 
-  console.warn("WEBHOOK VERIFICATION FAILED", { mode, token });
   return new NextResponse("Forbidden", { status: 403 });
 }
 
-// POST = actual WhatsApp notifications
+// POST: incoming webhook events
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   console.log("WEBHOOK POST PAYLOAD:", JSON.stringify(body, null, 2));
 
-  // here you'll later handle messages
-
   return NextResponse.json("EVENT_RECEIVED", { status: 200 });
 }
 
-// ensure this route is always dynamic
+// Ensure this is always dynamic (no static optimization)
 export const dynamic = "force-dynamic";
